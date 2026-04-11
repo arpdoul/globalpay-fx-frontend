@@ -4,12 +4,13 @@ import "@rainbow-me/rainbowkit/styles.css";
 import { getDefaultConfig, RainbowKitProvider, ConnectButton } from "@rainbow-me/rainbowkit";
 import { WagmiProvider } from "wagmi";
 import { mainnet, polygon, arbitrum } from "wagmi/chains";
+const arcTestnet = { id: 5042002, name: "Arc Testnet", nativeCurrency: { name: "USD Coin", symbol: "USDC", decimals: 6 }, rpcUrls: { default: { http: ["https://rpc.arc.blockdaemon.com"] } }, blockExplorers: { default: { name: "Arc Testnet Explorer", url: "https://explorer.arc.blockdaemon.com" } } };
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 
 const config = getDefaultConfig({
   appName: "GlobalPay FX",
   projectId: ".7d5817f219d3dcb5246444281dece24d",
-  chains: [mainnet, polygon, arbitrum],
+  chains: [mainnet, polygon, arbitrum, arcTestnet],
 });
 
 const queryClient = new QueryClient();
