@@ -13,7 +13,7 @@ const config = getDefaultConfig({
 });
 
 const queryClient = new QueryClient();
-const API = "http://localhost:3000/api";
+const API = "https://globalpay-fx-backend-production.up.railway.app.up.railway.app/api";
 const WALLETS = [
   { id: "3ccb3a3b-75a3-533d-94db-fb5525cb4bfd", label: "Wallet 1 (Main)" },
   { id: "7dbbaa61-e13d-552b-a545-ae10d779a586", label: "Wallet 2" },
