@@ -24,7 +24,7 @@ const config = getDefaultConfig({
 });
 
 const queryClient = new QueryClient();
-const API = "https://globalpay-fx-backend-production.up.railway.app/api";
+const API = import.meta.env.VITE_API_URL || "https://globalpay-fx-backend-production.up.railway.app/api";
 const WALLETS = [
   { id: "3ccb3a3b-75a3-533d-94db-fb5525cb4bfd", label: "Wallet 1 (Main)" },
   { id: "7dbbaa61-e13d-552b-a545-ae10d779a586", label: "Wallet 2" },
@@ -65,7 +65,7 @@ function MainApp() {
       const results = {};
       for (const w of WALLETS) {
         const res = await axios.get(`${API}/balance/${w.id}`);
-        results[w.id] = res.data.balance ?? res.data.balances?.[0]?.amount ?? "0";
+        results[w.id] = res.data.balances?.[0]?.amount ?? "0";
       }
       setBalances(results);
     } catch (e) { console.error(e); }
