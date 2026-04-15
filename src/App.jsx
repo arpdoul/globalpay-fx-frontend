@@ -72,15 +72,22 @@ function MainApp() {
   }
 
   async function getAdapter() {
+    // Try wagmi walletClient first (RainbowKit)
+    if (walletClient) {
+      const { BrowserProvider } = await import("ethers");
+      const provider = new BrowserProvider(walletClient);
+      const signer = await provider.getSigner();
+      return new EthersAdapter(signer);
+    }
+    // Fallback to window.ethereum
     if (window.ethereum) {
-      const {ethers} = await import("ethers");
+      const { ethers } = await import("ethers");
+      await window.ethereum.request({ method: "eth_requestAccounts" });
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       return new EthersAdapter(signer);
     }
-    if (!walletClient) throw new Error("Connect your wallet first");
-    const signer = await new BrowserProvider(walletClient).getSigner();
-    return new EthersAdapter(signer);
+    throw new Error("No wallet connected. Please connect your wallet first.");
   }
 
   function getKit() {
