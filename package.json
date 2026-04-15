@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@circle-fin/adapter-ethers-v6": "^1.6.4",
+    "@circle-fin/app-kit": "^1.3.0",
     "@metamask/detect-provider": "^2.0.0",
     "@rainbow-me/rainbowkit": "^2.2.10",
     "@tanstack/react-query": "^5.97.0",
