@@ -6,7 +6,7 @@ import { WagmiProvider, useWalletClient } from "wagmi";
 import { mainnet, polygon, arbitrum, sepolia } from "wagmi/chains";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { AppKit } from "@circle-fin/app-kit";
-import { EthersV6Adapter } from "@circle-fin/adapter-ethers-v6";
+import { EthersAdapter } from "@circle-fin/adapter-ethers-v6";
 import { BrowserProvider } from "ethers";
 
 const arcTestnet = {
@@ -65,7 +65,7 @@ function MainApp() {
       const results = {};
       for (const w of WALLETS) {
         const res = await axios.get(`${API}/balance/${w.id}`);
-        results[w.id] = res.data.balances?.[0]?.amount ?? "0";
+        console.log("wallet", w.id, "response:", JSON.stringify(res.data)); results[w.id] = res.data.balances?.[0]?.amount ?? "0";
       }
       setBalances(results);
     } catch (e) { console.error(e); }
@@ -74,7 +74,7 @@ function MainApp() {
   async function getAdapter() {
     if (!walletClient) throw new Error("Connect your wallet first");
     const signer = await new BrowserProvider(walletClient).getSigner();
-    return new EthersV6Adapter(signer);
+    return new EthersAdapter(signer);
   }
 
   function getKit() {
