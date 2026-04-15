@@ -1,0 +1,32 @@
+const adapter = await getAdapter();
+      const kit = getKit();
+
+      const tokenIn = swapFrom;
+      const tokenOut = swapFrom === "USDC" ? "EURC" : "USDC";
+
+      const result = await kit.swap({
+        from: { adapter, chain: "Arc_Testnet" },
+        tokenIn,
+        tokenOut,
+        amountIn: String(swapAmount),
+        config: { kitKey: import.meta.env.VITE_KIT_KEY },
+      });
+
+      setStatus(
+        `✅ Swap complete! TX: ${result?.transactionHash || JSON.stringify(result)}`
+      );
+      setStatusType("success");
+    } catch (err) {
+      setStatus(`❌ Swap failed: ${err.message}`);
+      setStatusType("error");
+    }
+    setLoading(false);
+  }
+
+  const statusColor =
+    statusType === "success"
+      ? "#4ade80"
+      : statusType === "error"
+      ? "#f87171"
+      : "#94a3b8";
+
