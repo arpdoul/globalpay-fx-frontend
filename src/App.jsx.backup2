@@ -72,12 +72,6 @@ function MainApp() {
   }
 
   async function getAdapter() {
-    if (window.ethereum) {
-      const {ethers} = await import("ethers");
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      return new EthersAdapter(signer);
-    }
     if (!walletClient) throw new Error("Connect your wallet first");
     const signer = await new BrowserProvider(walletClient).getSigner();
     return new EthersAdapter(signer);
