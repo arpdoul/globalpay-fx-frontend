@@ -97,11 +97,12 @@ function MainApp() {
   throw new Error("No wallet connected. Please connect your wallet first.");
 }
 
-  function getKit() {
-    const k = import.meta.env.VITE_KIT_KEY;
-    if (!k) throw new Error("VITE_KIT_KEY missing");
-    return new AppKit({ kitKey: k });
-  }
+  async function getKit() {
+  const k = import.meta.env.VITE_KIT_KEY;
+  if (!k) throw new Error("VITE_KIT_KEY missing");
+  const adapter = await getAdapter();
+  return new AppKit({ kitKey: k, adapter });
+}
 
   function setMsg(msg, type = "info") { setStatus(msg); setStatusType(type); }
 
@@ -119,12 +120,12 @@ function MainApp() {
     if (!bridgeAmount) return setMsg("❌ Enter amount", "error");
     setLoading(true); setMsg("🌉 Bridging... confirm in wallet");
     try {
-      const adapter = await getAdapter();
-      const result = await getKit().bridge({
-        from: { adapter, chain: bridgeDir === "to_arc" ? "Ethereum_Sepolia" : "Arc_Testnet" },
-        to: { adapter, chain: bridgeDir === "to_arc" ? "Arc_Testnet" : "Ethereum_Sepolia" },
-        amount: String(bridgeAmount),
-      });
+      const kit = await getKit();
+const result = await kit.bridge({
+  from: { chain: bridgeDir === "to_arc" ? "Ethereum_Sepolia" : "Arc_Testnet" },
+  to: { chain: bridgeDir === "to_arc" ? "Arc_Testnet" : "Ethereum_Sepolia" },
+  amount: String(bridgeAmount),
+});
       setMsg(`✅ Bridge done! TX: ${result?.transactionHash || JSON.stringify(result)}`, "success");
     } catch (e) { setMsg(`❌ ${e.message}`, "error"); }
     setLoading(false);
@@ -134,13 +135,13 @@ function MainApp() {
     if (!swapAmount) return setMsg("❌ Enter amount", "error");
     setLoading(true); setMsg("🔄 Swapping... confirm in wallet");
     try {
-      const adapter = await getAdapter();
-      const tokenOut = swapFrom === "USDC" ? "EURC" : "USDC";
-      const result = await getKit().swap({
-        from: { adapter, chain: "Arc_Testnet" },
-        tokenIn: swapFrom, tokenOut, amountIn: String(swapAmount),
-        config: { kitKey: import.meta.env.VITE_KIT_KEY },
-      });
+      const kit = await getKit();
+const tokenOut = swapFrom === "USDC" ? "EURC" : "USDC";
+const result = await kit.swap({
+  from: { chain: "Arc_Testnet" },
+  tokenIn: swapFrom, tokenOut, amountIn: String(swapAmount),
+  config: { kitKey: import.meta.env.VITE_KIT_KEY },
+});
       setMsg(`✅ Swap done! TX: ${result?.transactionHash || JSON.stringify(result)}`, "success");
     } catch (e) { setMsg(`❌ ${e.message}`, "error"); }
     setLoading(false);
@@ -252,5 +253,6 @@ export default function App() {
     </WagmiProvider>
   );
 }
+
 
 
