@@ -6,7 +6,7 @@ import { getDefaultConfig, RainbowKitProvider, ConnectButton } from "@rainbow-me
 import { WagmiProvider, useWalletClient } from "wagmi";
 import { mainnet, polygon, arbitrum, sepolia } from "wagmi/chains";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
-import { BridgeKit } from "@circle-fin/bridge-kit";
+import { AppKit } from "@circle-fin/app-kit";
 import { EthersAdapter } from "@circle-fin/adapter-ethers-v6";
 import { BrowserProvider } from "ethers";
 
@@ -73,7 +73,9 @@ function MainApp() {
   }
 
   async function getAdapter() {
+  // Try wagmi walletClient first (RainbowKit)
   if (walletClient) {
+    const { BrowserProvider } = await import("ethers");
     const provider = new BrowserProvider(walletClient);
     const signer = await provider.getSigner();
     return new EthersAdapter({
@@ -81,7 +83,9 @@ function MainApp() {
       signer: signer,
     });
   }
+  // Fallback to window.ethereum
   if (window.ethereum) {
+    const { BrowserProvider } = await import("ethers");
     await window.ethereum.request({ method: "eth_requestAccounts" });
     const provider = new BrowserProvider(window.ethereum);
     const signer = await provider.getSigner();
@@ -90,12 +94,14 @@ function MainApp() {
       signer: signer,
     });
   }
-  throw new Error("No wallet connected.");
+  throw new Error("No wallet connected. Please connect your wallet first.");
 }
 
   function getKit() {
-  return new BridgeKit();
-}
+    const k = import.meta.env.VITE_KIT_KEY;
+    if (!k) throw new Error("VITE_KIT_KEY missing");
+    return new AppKit({ kitKey: k });
+  }
 
   function setMsg(msg, type = "info") { setStatus(msg); setStatusType(type); }
 
@@ -110,40 +116,35 @@ function MainApp() {
   }
 
   async function handleBridge() {
-  if (!bridgeAmount) return setMsg("❌ Enter amount", "error");
-  setLoading(true); setMsg("🌉 Bridging... confirm in wallet");
-  try {
-    const adapter = await getAdapter();
-    const kit = getKit();
-    const fromChain = bridgeDir === "to_arc" ? "Ethereum_Sepolia" : "Arc_Testnet";
-    const toChain = bridgeDir === "to_arc" ? "Arc_Testnet" : "Ethereum_Sepolia";
-    const result = await kit.bridge({
-      from: { adapter, chain: fromChain },
-      to: { adapter, chain: toChain },
-      amount: String(bridgeAmount),
-    });
-    setMsg(`✅ Bridge done! TX: ${result?.transactionHash || JSON.stringify(result)}`, "success");
-  } catch (e) { setMsg(`❌ ${e.message}`, "error"); }
-  setLoading(false);
-}
+    if (!bridgeAmount) return setMsg("❌ Enter amount", "error");
+    setLoading(true); setMsg("🌉 Bridging... confirm in wallet");
+    try {
+      const adapter = await getAdapter();
+      const result = await getKit().bridge({
+        from: { adapter, chain: bridgeDir === "to_arc" ? "Ethereum_Sepolia" : "Arc_Testnet" },
+        to: { adapter, chain: bridgeDir === "to_arc" ? "Arc_Testnet" : "Ethereum_Sepolia" },
+        amount: String(bridgeAmount),
+      });
+      setMsg(`✅ Bridge done! TX: ${result?.transactionHash || JSON.stringify(result)}`, "success");
+    } catch (e) { setMsg(`❌ ${e.message}`, "error"); }
+    setLoading(false);
+  }
 
   async function handleSwap() {
-  if (!swapAmount) return setMsg("❌ Enter amount", "error");
-  setLoading(true); setMsg("🔄 Swapping... confirm in wallet");
-  try {
-    const adapter = await getAdapter();
-    const kit = getKit();
-    const tokenOut = swapFrom === "USDC" ? "EURC" : "USDC";
-    const result = await kit.swap({
-      from: { adapter, chain: "Arc_Testnet" },
-      tokenIn: swapFrom,
-      tokenOut,
-      amountIn: String(swapAmount),
-    });
-    setMsg(`✅ Swap done! TX: ${result?.transactionHash || JSON.stringify(result)}`, "success");
-  } catch (e) { setMsg(`❌ ${e.message}`, "error"); }
-  setLoading(false);
-}
+    if (!swapAmount) return setMsg("❌ Enter amount", "error");
+    setLoading(true); setMsg("🔄 Swapping... confirm in wallet");
+    try {
+      const adapter = await getAdapter();
+      const tokenOut = swapFrom === "USDC" ? "EURC" : "USDC";
+      const result = await getKit().swap({
+        from: { adapter, chain: "Arc_Testnet" },
+        tokenIn: swapFrom, tokenOut, amountIn: String(swapAmount),
+        config: { kitKey: import.meta.env.VITE_KIT_KEY },
+      });
+      setMsg(`✅ Swap done! TX: ${result?.transactionHash || JSON.stringify(result)}`, "success");
+    } catch (e) { setMsg(`❌ ${e.message}`, "error"); }
+    setLoading(false);
+  }
 
   const noWallet = !walletClient;
 
