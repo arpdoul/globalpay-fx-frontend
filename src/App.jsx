@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import axios from "axios";
 import "@rainbow-me/rainbowkit/styles.css";
@@ -72,23 +73,29 @@ function MainApp() {
   }
 
   async function getAdapter() {
-    // Try wagmi walletClient first (RainbowKit)
-    if (walletClient) {
-      const { BrowserProvider } = await import("ethers");
-      const provider = new BrowserProvider(walletClient);
-      const signer = await provider.getSigner();
-      return new EthersAdapter(signer);
-    }
-    // Fallback to window.ethereum
-    if (window.ethereum) {
-      const { ethers } = await import("ethers");
-      await window.ethereum.request({ method: "eth_requestAccounts" });
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      return new EthersAdapter(signer);
-    }
-    throw new Error("No wallet connected. Please connect your wallet first.");
+  // Try wagmi walletClient first (RainbowKit)
+  if (walletClient) {
+    const { BrowserProvider } = await import("ethers");
+    const provider = new BrowserProvider(walletClient);
+    const signer = await provider.getSigner();
+    return new EthersAdapter({
+      getProvider: () => provider,
+      signer: signer,
+    });
   }
+  // Fallback to window.ethereum
+  if (window.ethereum) {
+    const { BrowserProvider } = await import("ethers");
+    await window.ethereum.request({ method: "eth_requestAccounts" });
+    const provider = new BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+    return new EthersAdapter({
+      getProvider: () => provider,
+      signer: signer,
+    });
+  }
+  throw new Error("No wallet connected. Please connect your wallet first.");
+}
 
   function getKit() {
     const k = import.meta.env.VITE_KIT_KEY;
@@ -245,4 +252,5 @@ export default function App() {
     </WagmiProvider>
   );
 }
+
 
